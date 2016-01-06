@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Hello WebSocket</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+<script src="http://cdn.sockjs.org/sockjs-0.3.4.min.js"></script>
+<script
+	src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script type="text/javascript">
+	var sock, stompClient, name, subscription;
+
+	//Initialization
+	function init()
+	{
+		setName();
+		connect();
+	}
+	
+	//Setting user name
+    function setName(){
+         name = prompt("Enter your name:","Chater");
+         if (!name || name ==="") {
+            name = "Chater";  
+         }
+         name = name.replace(/(<([^>]+)>)/ig,"");
+    };
+	
+    //Connect to server
+	function connect() {
+			sock = new SockJS('/hello');
+			sock.onheartbeat = function() {
+				console.log('heartbeat');
+			};
+			stompClient = Stomp.over(sock);
+			stompClient.connect({
+				login : name
+			}, function(frame) {
+				console.log('Connected: ' + frame);
+				subscribe();
+			});
+	}
+    
+    //Suscribe chanel
+	function subscribe() {
+		subscription = stompClient.subscribe('/topic/greetings', function(
+				message) {
+			var m = JSON.parse(message.body);
+			var chatZone = document.getElementById("chatZone");
+			chatZone.innerHTML+='<div class="chatmsg"><b>'+m.user+'</b>: '+m.content+'<br/></div>'
+			chatZone.scrollTop = chatZone.scrollHeight;
+		});
+	}
+    
+    //Send message to chanel
+	function sendMessage() {
+		var message = document.getElementById("msg");
+		if (message.value != "") {
+			stompClient.send("/app/hello", {
+				subscription : subscription.id
+			}, JSON.stringify({
+				'user' : name,
+				'content' : message.value
+			}));
+			message.value = "";
+		}
+	}
+    
+    //Unsucribe chanel
+	function unsubscribe() {
+		subscription.unsubscribe();
+	}
+    
+    //Disconnect server
+	function disconnect() {
+
+		unsubscribe(key)
+
+		stompClient.disconnect(function(frame) {});
+	}
+    
+</script>
+
+</head>
+
+<body style="margin: 0" onload="init()">
+	<noscript>
+		<h2 style="color: #ff0000">Seems your browser doesn't support
+			Javascript! WebSocket relies on Javascript being enabled. Please
+			enable Javascript and reload this page!</h2>
+	</noscript>
+	<div class="container">
+		<div class="chat">
+			<div id="chatZone" name="chatZone"></div>
+			<form onsubmit="sendMessage();return false;">
+				<label for="msg" style="float: left">Message:</label> <input
+					type="text" id="msg" name="msg" autofocus="true"
+					placeholder="Type Your Meassage Here" /> <input type="submit" />
+			</form>
+		</div>
+	</div>
+</body>
+</html>
