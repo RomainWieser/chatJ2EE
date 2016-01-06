@@ -25,6 +25,16 @@ body {
 	color: orange;
 }
 
+.chatmsg {
+	margin: 0 5px;
+}
+
+.user {
+	margin: 0 5px;
+	text-transform: uppercase;
+	color: orange;
+}
+
 .chat {
 	margin: 0 auto;
 }
