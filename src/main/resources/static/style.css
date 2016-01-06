@@ -8,7 +8,7 @@ body {
 
 .container {
 	margin: 0 auto;
-	width: 1100px;
+	width: 1400px;
 }
 
 .chat-zone {
@@ -31,6 +31,17 @@ body {
 
 .chat #chatZone {
 	width: 1000px;
+	height: 700px;
+	border: 1px solid #ddd;
+	border-radius: 7px;
+	overflow-y: scroll;
+	background: #333;
+	color: #fff;
+	float:left;
+}
+
+.chat #usersZone {
+	width: 350px;
 	height: 700px;
 	border: 1px solid #ddd;
 	border-radius: 7px;

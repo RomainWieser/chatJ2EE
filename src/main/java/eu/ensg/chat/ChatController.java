@@ -11,11 +11,10 @@ public class ChatController {
 	@Autowired
 	private MessageRepository repository;
 
-    @MessageMapping("/hello")
-    @SendTo("/topic/greetings")
+    @MessageMapping("/chat")
+    @SendTo("/topic/room1")
     public Message send(Message message) throws Exception {
     	repository.save(message);
         return message;
     }
-
 }

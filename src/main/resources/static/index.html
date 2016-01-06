@@ -10,52 +10,65 @@
 	var sock, stompClient, name, subscription;
 
 	//Initialization
-	function init()
-	{
+	function init() {
 		setName();
 		connect();
 	}
-	
+
 	//Setting user name
-    function setName(){
-         name = prompt("Enter your name:","Chater");
-         if (!name || name ==="") {
-            name = "Chater";  
-         }
-         name = name.replace(/(<([^>]+)>)/ig,"");
-    };
-	
-    //Connect to server
+	function setName() {
+		name = prompt("Enter your name:", "Chater");
+		if (!name || name === "") {
+			name = "Chater";
+		}
+		name = name.replace(/(<([^>]+)>)/ig, "");
+	};
+
+	//Connect to server
 	function connect() {
-			sock = new SockJS('/hello');
-			sock.onheartbeat = function() {
-				console.log('heartbeat');
-			};
-			stompClient = Stomp.over(sock);
-			stompClient.connect({
-				login : name
-			}, function(frame) {
-				console.log('Connected: ' + frame);
-				subscribe();
-			});
+		sock = new SockJS('/hello');
+		sock.onheartbeat = function() {
+			console.log('heartbeat');
+		};
+		stompClient = Stomp.over(sock);
+		stompClient.connect({}, function(frame) {
+			console.log('Connected: ' + frame);
+			subscribe();
+		});
 	}
-    
-    //Suscribe chanel
+
+	//Suscribe chanel
 	function subscribe() {
-		subscription = stompClient.subscribe('/topic/greetings', function(
+		subscription = stompClient.subscribe('/topic/room1', function(message) {
+			var m = JSON.parse(message.body);
+			var chatZone = document.getElementById("chatZone");
+			chatZone.innerHTML += '<div class="chatmsg"><b>' + m.user
+					+ '</b>: ' + m.content + '<br/></div>'
+			chatZone.scrollTop = chatZone.scrollHeight;
+		});
+
+		subscription = stompClient.subscribe('/topic/room1/admin', function(
 				message) {
 			var m = JSON.parse(message.body);
 			var chatZone = document.getElementById("chatZone");
-			chatZone.innerHTML+='<div class="chatmsg"><b>'+m.user+'</b>: '+m.content+'<br/></div>'
+			chatZone.innerHTML += '<div class="chatmsg"><b>' + m.name
+					+ ' vient de se connecter</b><br/></div>'
 			chatZone.scrollTop = chatZone.scrollHeight;
 		});
+
+		stompClient.send("/app/users", {
+			subscription : subscription.id
+		}, JSON.stringify({
+			'eventType' : 'CONNECT',
+			'name' : name
+		}));
 	}
-    
-    //Send message to chanel
+
+	//Send message to chanel
 	function sendMessage() {
 		var message = document.getElementById("msg");
 		if (message.value != "") {
-			stompClient.send("/app/hello", {
+			stompClient.send("/app/chat", {
 				subscription : subscription.id
 			}, JSON.stringify({
 				'user' : name,
@@ -64,20 +77,20 @@
 			message.value = "";
 		}
 	}
-    
-    //Unsucribe chanel
+
+	//Unsucribe chanel
 	function unsubscribe() {
 		subscription.unsubscribe();
 	}
-    
-    //Disconnect server
+
+	//Disconnect server
 	function disconnect() {
 
 		unsubscribe(key)
 
-		stompClient.disconnect(function(frame) {});
+		stompClient.disconnect(function(frame) {
+		});
 	}
-    
 </script>
 
 </head>
@@ -90,12 +103,15 @@
 	</noscript>
 	<div class="container">
 		<div class="chat">
-			<div id="chatZone" name="chatZone"></div>
+			<div>
+				<div id="chatZone" name="chatZone"></div>
+				<div id="usersZone" name="usersZone"></div>
+			</div>
+
 			<form onsubmit="sendMessage();return false;">
-				<label for="msg" style="float: left">Message:</label> 
-				<input type="text" id="msg" name="msg" autofocus="true" autocomplete="off"
-						placeholder="Type Your Meassage Here" /> 
-				<input type="submit" />
+				<label for="msg" style="float: left">Message:</label> <input
+					type="text" id="msg" name="msg" autofocus="true" autocomplete="off"
+					placeholder="Type Your Meassage Here" /> <input type="submit" />
 			</form>
 		</div>
 	</div>
